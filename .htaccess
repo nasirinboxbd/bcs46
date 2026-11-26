@@ -1,0 +1,55 @@
+DirectoryIndex index.php index.html
+Options -Indexes
+
+# Use the same local error handler at the domain root and under XAMPP's /bcs46/.
+SetEnvIf Request_URI "^/(bcs46)(?:/|$)" BCS_ERROR_PREFIX=$1/
+ErrorDocument 400 /%{env:BCS_ERROR_PREFIX}error.php
+ErrorDocument 401 /%{env:BCS_ERROR_PREFIX}error.php
+ErrorDocument 403 /%{env:BCS_ERROR_PREFIX}error.php
+ErrorDocument 404 /%{env:BCS_ERROR_PREFIX}error.php
+ErrorDocument 405 /%{env:BCS_ERROR_PREFIX}error.php
+ErrorDocument 406 /%{env:BCS_ERROR_PREFIX}error.php
+ErrorDocument 408 /%{env:BCS_ERROR_PREFIX}error.php
+ErrorDocument 409 /%{env:BCS_ERROR_PREFIX}error.php
+ErrorDocument 410 /%{env:BCS_ERROR_PREFIX}error.php
+ErrorDocument 411 /%{env:BCS_ERROR_PREFIX}error.php
+ErrorDocument 412 /%{env:BCS_ERROR_PREFIX}error.php
+ErrorDocument 413 /%{env:BCS_ERROR_PREFIX}error.php
+ErrorDocument 414 /%{env:BCS_ERROR_PREFIX}error.php
+ErrorDocument 415 /%{env:BCS_ERROR_PREFIX}error.php
+ErrorDocument 416 /%{env:BCS_ERROR_PREFIX}error.php
+ErrorDocument 417 /%{env:BCS_ERROR_PREFIX}error.php
+ErrorDocument 421 /%{env:BCS_ERROR_PREFIX}error.php
+ErrorDocument 422 /%{env:BCS_ERROR_PREFIX}error.php
+ErrorDocument 423 /%{env:BCS_ERROR_PREFIX}error.php
+ErrorDocument 424 /%{env:BCS_ERROR_PREFIX}error.php
+ErrorDocument 426 /%{env:BCS_ERROR_PREFIX}error.php
+ErrorDocument 428 /%{env:BCS_ERROR_PREFIX}error.php
+ErrorDocument 429 /%{env:BCS_ERROR_PREFIX}error.php
+ErrorDocument 431 /%{env:BCS_ERROR_PREFIX}error.php
+ErrorDocument 451 /%{env:BCS_ERROR_PREFIX}error.php
+ErrorDocument 500 /%{env:BCS_ERROR_PREFIX}error.php
+ErrorDocument 501 /%{env:BCS_ERROR_PREFIX}error.php
+ErrorDocument 502 /%{env:BCS_ERROR_PREFIX}error.php
+ErrorDocument 503 /%{env:BCS_ERROR_PREFIX}error.php
+ErrorDocument 504 /%{env:BCS_ERROR_PREFIX}error.php
+ErrorDocument 505 /%{env:BCS_ERROR_PREFIX}error.php
+ErrorDocument 506 /%{env:BCS_ERROR_PREFIX}error.php
+ErrorDocument 507 /%{env:BCS_ERROR_PREFIX}error.php
+ErrorDocument 508 /%{env:BCS_ERROR_PREFIX}error.php
+ErrorDocument 510 /%{env:BCS_ERROR_PREFIX}error.php
+ErrorDocument 511 /%{env:BCS_ERROR_PREFIX}error.php
+
+RewriteEngine On
+
+# Friendly application routes. The PHP entrypoints remain available for compatibility.
+RewriteRule ^declaration/?$ index.php [END,QSA]
+RewriteRule ^joining-letter/?$ joining-letter.php [END,QSA]
+RewriteRule ^admin/?$ admin.php [END,QSA]
+RewriteRule ^logout/?$ logout.php [END,QSA]
+
+<FilesMatch "^(config|db)\.php$">
+  Require all denied
+</FilesMatch>
+
+RedirectMatch 403 ^/(config|app|database|resources)(/|$)

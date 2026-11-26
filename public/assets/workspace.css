@@ -1,0 +1,81 @@
+﻿.document-shell {
+  --bg: #f1f6f3;
+  --c: #fff;
+  --t: #17251e;
+  --m: #496258;
+  --b: #cdded4;
+  margin: 0;
+  background: var(--bg);
+  color: var(--t);
+  font-family: "Noto Sans Bengali", "Nirmala UI", system-ui, sans-serif;
+}
+.document-shell *, .document-shell *::before, .document-shell *::after { box-sizing: border-box; }
+.document-shell button { font-family: inherit; }
+.document-shell .app-sidebar { overflow: auto; }
+.document-shell .app-sidebar__mark { flex: none; object-fit: contain; }
+.document-shell .app-sidebar__brand span { overflow-wrap: anywhere; }
+.document-shell .developer-panel { max-height: 100%; overflow: auto; }
+.document-shell [hidden] { display: none !important; }
+.document-shell > .app-sidebar-toggle { display: none; }
+#openDeveloper {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ffffff36;
+  border-radius: 12px;
+  background: transparent;
+  color: #fff;
+  text-align: left;
+  font-size: 15px;
+  cursor: pointer;
+}
+#openDeveloper:hover, #openDeveloper:focus-visible { background: #ffffff1c; }
+#downloadStats { padding: 10px 0; border-bottom: 1px solid #ffffff36; }
+#downloadTotal { color: #fff; font-size: 17px; font-variant-numeric: tabular-nums; }
+.workspace-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+}
+.workspace-tabs {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.workspace-tabs button {
+  min-height: 40px;
+  padding: 5px 12px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: #e9fff4;
+  text-align: left;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.workspace-tabs button[aria-selected="true"] {
+  background: #ffffff1c;
+  color: #fff;
+  box-shadow: inset 3px 0 #f1c55b;
+}
+.workspace-tabs button:hover:not([aria-selected="true"]) { background: #ffffff12; }
+.workspace-tabs button:focus-visible { outline: 2px solid #9bf5c9; outline-offset: 2px; }
+.workspace-shell > [role="tabpanel"] { flex: 1; min-height: 0; }
+.workspace-shell iframe { display: block; width: 100%; height: 100%; border: 0; }
+@media (max-width: 1024px) {
+  body.document-shell.has-app-sidebar { padding-left: 0; }
+  body.document-shell.has-app-sidebar > .app-sidebar-toggle {
+    display: block;
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    width: 40px;
+    height: 40px;
+  }
+  .document-shell .app-sidebar { visibility: hidden; transform: translateX(-105%); }
+  .document-shell .app-sidebar.is-open { visibility: visible; transform: translateX(0); }
+  .document-shell .app-sidebar__close { display: block; }
+  .document-shell .app-sidebar__overlay.is-open { display: block; }
+  .workspace-shell { padding-top: 56px; }
+}
