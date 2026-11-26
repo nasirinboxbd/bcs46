@@ -264,3 +264,5 @@ Database ও HTML দুটিতেই `utf8mb4` ব্যবহার কর�
 - নিয়মিত database backup রাখুন।
 - Production server-এ error display বন্ধ রাখুন এবং error log সংরক্ষণ করুন।
 
+#   b c s 4 6  
+ 
