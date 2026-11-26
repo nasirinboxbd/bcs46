@@ -522,8 +522,95 @@
         z-index: 20;
       }
     </style>
+    <style id="uiEnhancements">
+      :root {
+        --shadow-soft: 0 14px 36px rgba(8, 67, 45, 0.08);
+        --shadow-lift: 0 18px 44px rgba(8, 67, 45, 0.14);
+      }
+      body {
+        background:
+          radial-gradient(circle at 8% 12%, rgba(15, 157, 110, 0.08), transparent 24rem),
+          radial-gradient(circle at 92% 42%, rgba(11, 122, 85, 0.06), transparent 28rem),
+          var(--bg);
+      }
+      .hero {
+        position: relative;
+        isolation: isolate;
+        overflow: hidden;
+        background: linear-gradient(118deg, #064e3b 0%, #087a55 52%, #16a173 100%);
+        padding-top: 48px;
+      }
+      .hero::before,
+      .hero::after {
+        content: "";
+        position: absolute;
+        z-index: -1;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 50%;
+        pointer-events: none;
+      }
+      .hero::before { width: 23rem; height: 23rem; right: -7rem; top: -11rem; }
+      .hero::after { width: 18rem; height: 18rem; left: -9rem; bottom: -13rem; }
+      .hero h1 { letter-spacing: -0.02em; text-wrap: balance; }
+      .hero p { font-size: 16px; line-height: 1.75; }
+      .developer-open { margin-top: 22px; backdrop-filter: blur(8px); }
+      main { gap: 22px; }
+      .card {
+        border-radius: 20px;
+        box-shadow: var(--shadow-soft);
+        transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+      }
+      #form > .card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); border-color: color-mix(in srgb, var(--a2) 28%, var(--b)); }
+      .card h2 { font-size: 20px; }
+      .card h2 i { width: 34px; height: 34px; border-radius: 11px; }
+      input[type="text"], input[type="date"], select {
+        min-height: 46px;
+        border-radius: 12px;
+        transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+      }
+      input:hover, select:hover { border-color: color-mix(in srgb, var(--a2) 48%, var(--b)); }
+      input:focus, select:focus { box-shadow: 0 0 0 4px color-mix(in srgb, var(--a2) 14%, transparent); }
+      .r label { padding: 8px 12px; border: 1px solid var(--b); border-radius: 10px; background: color-mix(in srgb, var(--c) 72%, var(--bg)); }
+      .r input { accent-color: var(--a); }
+      .note { padding: 10px 12px; border-left: 3px solid color-mix(in srgb, var(--a2) 70%, transparent); background: color-mix(in srgb, var(--ad) 46%, transparent); border-radius: 0 10px 10px 0; }
+      #pvCard { box-shadow: 0 18px 48px rgba(8, 67, 45, 0.12); }
+      #pvbox { background: linear-gradient(145deg, #75847c, #9ba7a0); padding: 18px; }
+      .bar { backdrop-filter: blur(16px); background: color-mix(in srgb, var(--c) 88%, transparent); box-shadow: 0 -8px 28px rgba(8, 67, 45, 0.08); }
+      .bar > div { justify-content: flex-end; }
+      button { min-height: 44px; border-radius: 12px; transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease; }
+      button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 7px 18px rgba(8, 67, 45, 0.12); }
+      button:focus-visible, a:focus-visible { outline: 3px solid color-mix(in srgb, var(--a2) 55%, transparent); outline-offset: 3px; }
+      .docs button { min-height: 78px; }
+      .setup span { padding: 4px 11px; }
+      .ui-progress {
+        position: fixed; top: 0; left: 0; z-index: 10010; height: 3px; width: 0;
+        background: #9bf5c9; box-shadow: 0 0 12px rgba(155, 245, 201, 0.8); transition: width 100ms linear;
+      }
+      .form-status {
+        position: fixed; left: 14px; bottom: calc(var(--barh, 76px) + 12px); z-index: 6;
+        display: inline-flex; align-items: center; gap: 7px; padding: 8px 12px;
+        border: 1px solid var(--b); border-radius: 999px; background: color-mix(in srgb, var(--c) 92%, transparent);
+        color: var(--m); font-size: 13px; box-shadow: var(--shadow-soft); backdrop-filter: blur(10px);
+      }
+      .form-status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--a2); }
+      @media (max-width: 700px) {
+        .hero { padding: 32px 16px 56px; }
+        main { padding-left: 10px; padding-right: 10px; }
+        .card { padding: 16px; border-radius: 16px; }
+        .bar { padding-left: 8px; padding-right: 8px; }
+        .bar > div { justify-content: stretch; }
+        .bar button { flex: 1 1 calc(50% - 8px); padding-left: 8px; padding-right: 8px; font-size: 14px; }
+        .form-status { left: 8px; bottom: 126px; }
+        #downloadStats { display: none; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .card, button, input, select { transition: none; }
+        #form > .card:hover, button:hover:not(:disabled) { transform: none; }
+      }
+    </style>
   </head>
   <body>
+    <div class="ui-progress" id="uiProgress" aria-hidden="true"></div>
     <div
       id="stampNoticeOverlay"
       role="dialog"
@@ -10511,6 +10598,42 @@
             notice.remove();
           }, 260);
         }, 3000);
+      })();
+    </script>
+
+    <script>
+      // Small UX helpers kept separate from the document generator.
+      (function () {
+        const progress = document.getElementById("uiProgress");
+        const form = document.getElementById("form");
+        const bar = document.querySelector(".bar");
+        if (!progress || !form) return;
+
+        const status = document.createElement("div");
+        status.className = "form-status";
+        status.setAttribute("aria-live", "polite");
+        status.textContent = "তথ্য পূরণ শুরু করুন";
+        document.body.appendChild(status);
+
+        function updateScrollProgress() {
+          const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+          progress.style.width = (scrollable > 0 ? (window.scrollY / scrollable) * 100 : 0) + "%";
+        }
+        function updateBarHeight() {
+          if (bar) document.documentElement.style.setProperty("--barh", bar.offsetHeight + "px");
+        }
+        function updateStatus() {
+          const fields = form.querySelectorAll("input[type=text], input[type=date], select");
+          const filled = [...fields].filter((field) => String(field.value || "").trim()).length;
+          status.textContent = filled ? filled + "টি ঘর পূরণ হয়েছে" : "তথ্য পূরণ শুরু করুন";
+        }
+        window.addEventListener("scroll", updateScrollProgress, { passive: true });
+        window.addEventListener("resize", updateBarHeight, { passive: true });
+        form.addEventListener("input", updateStatus);
+        form.addEventListener("change", updateStatus);
+        updateScrollProgress();
+        updateBarHeight();
+        updateStatus();
       })();
     </script>
   </body>
