@@ -16,6 +16,9 @@ function site_branding(array $settings): array
         'keywords' => 'বিসিএস যোগদানপত্র, বিসিএস অঙ্গীকারনামা, BCS joining letter, BCS declaration, যোগদানের কাগজপত্র',
         'author' => 'BCS Joining Documents',
         'theme_color' => '#087a55',
+        'enabled_themes' => ['emerald', 'ocean', 'violet', 'sunset'],
+        'active_theme' => 'emerald',
+        'color_mode' => 'light',
     ];
     $branding = is_array($saved)
         ? array_replace($defaults, array_intersect_key($saved, $defaults))
@@ -25,7 +28,31 @@ function site_branding(array $settings): array
             $branding[$key] = $defaults[$key];
         }
     }
+    $themeIds = array_keys(site_theme_catalog());
+    $enabled = is_array($branding['enabled_themes'])
+        ? array_values(array_unique(array_intersect($themeIds, $branding['enabled_themes'])))
+        : [];
+    if (!$enabled) {
+        $enabled = $defaults['enabled_themes'];
+    }
+    $branding['enabled_themes'] = $enabled;
+    if (!in_array($branding['active_theme'], $enabled, true)) {
+        $branding['active_theme'] = $enabled[0];
+    }
+    if (!in_array($branding['color_mode'], ['light', 'dark'], true)) {
+        $branding['color_mode'] = 'light';
+    }
     return $branding;
+}
+
+function site_theme_catalog(): array
+{
+    return [
+        'emerald' => 'এমারেল্ড',
+        'ocean' => 'ওশান',
+        'violet' => 'ভায়োলেট',
+        'sunset' => 'সানসেট',
+    ];
 }
 
 function site_base_url(): string

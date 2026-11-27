@@ -19,6 +19,8 @@ $jsonFlags = JSON_UNESCAPED_UNICODE | JSON_HEX_TAG;
 if (($_GET['panel'] ?? '') === 'declaration') {
     $html = file_get_contents(__DIR__ . '/resources/document-generator.html');
     $html = str_replace('<!-- site-branding -->', '<title>অঙ্গীকারনামা | ' . h($branding['site_title']) . '</title><meta name="robots" content="noindex,follow">', $html ?: '');
+    $html = str_replace('<html lang="bn">', '<html lang="bn" data-theme="' . h($branding['active_theme']) . '" data-color-mode="' . h($branding['color_mode']) . '">', $html);
+    $html = str_replace('</head>', '<link rel="stylesheet" href="public/assets/site-themes.css"><script src="public/assets/site-theme-sync.js" defer></script></head>', $html);
     $boot = '<script>window.BCS_SETTINGS = ' . json_encode($settings, $jsonFlags) . ';</script>';
     echo str_replace('</head>', $boot . '</head>', $html);
     exit;
@@ -35,7 +37,7 @@ if (admin_logged_in()) {
 }
 $sources = ['declaration' => '?panel=declaration', 'joining' => 'joining-letter?panel=1', 'admin' => 'admin?panel=1'];
 ?><!doctype html>
-<html lang="bn">
+<html lang="bn" data-theme="<?= h($branding['active_theme']) ?>" data-color-mode="<?= h($branding['color_mode']) ?>">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -72,7 +74,9 @@ $sources = ['declaration' => '?panel=declaration', 'joining' => 'joining-letter?
   ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?></script>
   <link rel="stylesheet" href="public/assets/navigation.css">
   <link rel="stylesheet" href="public/assets/workspace.css">
+  <link rel="stylesheet" href="public/assets/site-themes.css">
   <script src="public/assets/navigation.js" defer></script>
+  <script src="public/assets/site-theme-sync.js" defer></script>
 </head>
 <body class="has-app-sidebar document-shell">
   <button type="button" class="app-sidebar-toggle" aria-label="সাইডবার খুলুন" aria-controls="workspace-sidebar" aria-expanded="false">☰</button>

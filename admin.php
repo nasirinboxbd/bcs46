@@ -136,6 +136,25 @@ try {
                 }
                 $branding[$key] = $value === '' ? $defaults[$key] : $value;
             }
+            $themeCatalog = site_theme_catalog();
+            $submittedThemes = $_POST['enabled_themes'] ?? [];
+            $enabledThemes = is_array($submittedThemes)
+                ? array_values(array_unique(array_intersect(array_keys($themeCatalog), array_map('strval', $submittedThemes))))
+                : [];
+            if (!$enabledThemes) {
+                throw new RuntimeException('কমপক্ষে একটি থিম চালু রাখুন।');
+            }
+            $activeTheme = (string) ($_POST['active_theme'] ?? '');
+            if (!in_array($activeTheme, $enabledThemes, true)) {
+                throw new RuntimeException('সাইটের ডিফল্ট থিম হিসেবে চালু থাকা একটি থিম বেছে নিন।');
+            }
+            $colorMode = (string) ($_POST['color_mode'] ?? '');
+            if (!in_array($colorMode, ['light', 'dark'], true)) {
+                throw new RuntimeException('লাইট অথবা ডার্ক মোড বেছে নিন।');
+            }
+            $branding['enabled_themes'] = $enabledThemes;
+            $branding['active_theme'] = $activeTheme;
+            $branding['color_mode'] = $colorMode;
             $isWebUrl = static fn(string $value): bool =>
                 preg_match('~^https?://~i', $value) === 1 && filter_var($value, FILTER_VALIDATE_URL) !== false;
             if ($branding['canonical_url'] !== '' && !$isWebUrl($branding['canonical_url'])) {
@@ -181,7 +200,7 @@ try {
 $logged_in = admin_logged_in();
 $branding = site_branding($settings);
 ?><!doctype html>
-<html lang="bn">
+<html lang="bn" data-theme="<?php echo h($branding['active_theme']); ?>" data-color-mode="<?php echo h($branding['color_mode']); ?>">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -194,7 +213,10 @@ $branding = site_branding($settings);
     .shell{width:min(100% - 32px,1040px);margin:0 auto}.top{padding:28px 0 50px;background:linear-gradient(120deg,var(--brand-dark),var(--brand));color:#fff}.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px}.brand{font-size:20px;font-weight:800}.eyebrow{opacity:.78;font-size:13px}.top h1{font-size:clamp(28px,5vw,44px);line-height:1.2;margin:40px 0 8px}.top p{margin:0;opacity:.85;max-width:650px}.link{color:#fff;text-decoration:none;border:1px solid #ffffff55;border-radius:999px;padding:8px 14px}.wrap{margin:-28px auto 60px}.panel{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:clamp(20px,4vw,34px);box-shadow:0 18px 50px #164d3420}.panel h2{margin:0 0 5px;font-size:25px}.sub{margin:0 0 22px;color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:18px 22px}.field{display:grid;align-content:start;gap:6px}.field.full{grid-column:1/-1}label{font-weight:700;font-size:15px}input{width:100%;min-height:46px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fbfdfc;color:var(--ink);font:inherit}input:focus{outline:3px solid #0f9d6e33;border-color:var(--brand)}.help{font-size:13px;color:var(--muted)}.toggle{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:14px;padding:14px;background:#fbfdfc}.toggle input{width:20px;min-height:20px;accent-color:var(--brand)}button{border:0;border-radius:12px;padding:12px 18px;background:var(--brand);color:#fff;font:inherit;font-weight:700;cursor:pointer}button:hover{background:#0f9d6e}.actions{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:28px;padding-top:22px;border-top:1px solid var(--line)}.alert{border-radius:12px;padding:12px 14px;margin-bottom:18px}.error{background:#fff0ef;color:#a52b27}.success{background:var(--soft);color:var(--brand-dark)}.login{max-width:460px;margin:0 auto}.empty{color:var(--muted)}@media(max-width:680px){.shell{width:min(100% - 20px,1040px)}.grid{grid-template-columns:1fr}.field.full{grid-column:auto}.top{padding-top:18px}.top h1{margin-top:32px}.actions{align-items:stretch;flex-direction:column}.actions button{width:100%}}
     .developer-editor h3{margin:10px 0 0;font-size:20px}.developer-preview{display:flex;align-items:center;gap:18px;padding:18px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(135deg,#edf9f2,#fff)}.developer-preview img{width:92px;height:92px;border-radius:50%;object-fit:cover;border:4px solid #fff;box-shadow:0 8px 20px #164d3425}.developer-preview h3{margin:0;font-size:22px}.developer-preview p{margin:2px 0;color:var(--muted)}.developer-preview a{display:inline-block;margin-top:8px;color:#1877f2;font-weight:700;text-decoration:none}@media(max-width:680px){.developer-preview{align-items:flex-start;flex-direction:column}}
     .image-upload{display:grid;grid-template-columns:112px minmax(0,1fr);align-items:center;gap:18px;padding:16px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(135deg,#f5fbf7,#fff)}.image-upload img{width:112px;height:100px;object-fit:contain;border:1px solid var(--line);border-radius:14px;background:#fff;padding:8px}.image-upload img.avatar{width:100px;height:100px;object-fit:cover;border-radius:50%}.upload-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;padding:9px 14px;border:1px solid #b9dec9;border-radius:10px;background:#fff;color:var(--brand-dark);font-weight:700;cursor:pointer}.upload-button:hover{background:var(--soft)}.image-upload input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}.upload-name{display:block;min-height:20px;margin-top:6px;font-size:13px;color:var(--muted)}
+    .theme-settings{display:grid;gap:14px;margin:0;padding:18px;border:1px solid var(--line);border-radius:16px;background:var(--surface)}.theme-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.theme-choice{display:grid;gap:12px;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--bg)}.theme-choice label{display:flex;align-items:center;gap:8px}.theme-choice input{width:18px;min-height:18px;accent-color:var(--brand)}.theme-swatches{display:flex;gap:7px}.theme-swatches i{width:24px;height:24px;border-radius:50%;background:var(--swatch);border:2px solid #fff;box-shadow:0 0 0 1px var(--line)}.theme-enable{font-weight:800}.theme-default{color:var(--muted);font-size:13px}.mode-control{max-width:260px}@media(max-width:680px){.theme-grid{grid-template-columns:1fr}}
   </style>
+  <link rel="stylesheet" href="public/assets/site-themes.css">
+  <script src="public/assets/site-theme-sync.js" defer></script>
 </head>
 <body>
   <header class="top"><div class="shell"><div class="topbar"><div><div class="eyebrow">BCS joining documents</div><div class="brand">Admin control center</div></div><?php if ($logged_in): ?><a class="link" href="logout" target="_top">লগআউট</a><?php else: ?><a class="link" href="./">হোম</a><?php endif; ?></div><h1><?php echo $logged_in ? 'সাইটের shared তথ্য নিয়ন্ত্রণ করুন' : 'Admin panel'; ?></h1><p>এখানে পরিবর্তন করা তথ্য সকল ব্যবহারকারীর ফর্ম ও generated document-এ প্রযোজ্য হবে।</p></div></header>
@@ -230,6 +252,22 @@ $branding = site_branding($settings);
               </div>
             <?php endif; ?>
           <?php endforeach; ?>
+          <div class="field full developer-editor"><h3>ওয়েবসাইট থিম</h3><p class="help">থিম চালু বা বন্ধ করুন, চালু থাকা থিম থেকে সাইটের ডিফল্ট বেছে নিন এবং লাইট/ডার্ক মোড নির্ধারণ করুন। একটি থিম চালু থাকা বাধ্যতামূলক।</p></div>
+          <fieldset class="theme-settings field full"><legend>থিম নিয়ন্ত্রণ</legend>
+            <div class="theme-grid">
+              <?php foreach (site_theme_catalog() as $themeId => $themeName): ?>
+                <?php $themeColors = ['emerald' => ['#087a55', '#dff5e9', '#064e3b'], 'ocean' => ['#1769aa', '#e3f1fc', '#103d68'], 'violet' => ['#7353ba', '#f0eafd', '#3e2b70'], 'sunset' => ['#bd5b36', '#fff0e6', '#713820']][$themeId]; ?>
+                <div class="theme-choice">
+                  <label class="theme-enable"><input type="checkbox" name="enabled_themes[]" value="<?= h($themeId) ?>" <?= in_array($themeId, $branding['enabled_themes'], true) ? 'checked' : '' ?>><span><?= h($themeName) ?></span></label>
+                  <div class="theme-swatches" aria-hidden="true"><?php foreach ($themeColors as $color): ?><i style="--swatch:<?= h($color) ?>"></i><?php endforeach; ?></div>
+                  <label class="theme-default"><input type="radio" name="active_theme" value="<?= h($themeId) ?>" <?= $branding['active_theme'] === $themeId ? 'checked' : '' ?>><span>সাইটের ডিফল্ট থিম</span></label>
+                </div>
+              <?php endforeach; ?>
+            </div>
+            <label class="mode-control" for="color_mode">রঙের মোড
+              <select id="color_mode" name="color_mode"><option value="light" <?= $branding['color_mode'] === 'light' ? 'selected' : '' ?>>লাইট মোড</option><option value="dark" <?= $branding['color_mode'] === 'dark' ? 'selected' : '' ?>>ডার্ক মোড</option></select>
+            </label>
+          </fieldset>
           <div class="field full developer-editor"><h3>Developer পরিচিতি</h3><p class="help">এই তথ্য sidebar-এর Developer পরিচিতি modal-এ দেখা যাবে। ডান পাশে live preview দেখুন।</p></div>
           <div class="field"><label for="developer_name">নাম</label><input id="developer_name" name="developer_name" value="<?php echo h($settings['developer_name']); ?>" required></div>
           <div class="field"><label for="developer_subtitle">পরিচয় / subtitle</label><input id="developer_subtitle" name="developer_subtitle" value="<?php echo h($settings['developer_subtitle']); ?>" required></div>
@@ -258,6 +296,8 @@ $branding = site_branding($settings);
             'notificationNo' => $settings['notification_no'],
             'siteTitle' => $branding['site_title'],
             'siteLogo' => $branding['site_logo'],
+            'activeTheme' => $branding['active_theme'],
+            'colorMode' => $branding['color_mode'],
         ], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) ?>);
         settingsChannel.close();
       }
@@ -302,6 +342,31 @@ $branding = site_branding($settings);
         });
       });
       sync();
+    })();
+  </script>
+  <script>
+    (() => {
+      const choices = [...document.querySelectorAll('.theme-choice')];
+      const refresh = (changedInput) => {
+        const enabled = choices.filter((choice) => choice.querySelector('input[type="checkbox"]').checked);
+        if (!enabled.length && changedInput?.type === 'checkbox') {
+          changedInput.checked = true;
+          return;
+        }
+        choices.forEach((choice) => {
+          const checkbox = choice.querySelector('input[type="checkbox"]');
+          const radio = choice.querySelector('input[type="radio"]');
+          radio.disabled = !checkbox.checked;
+          if (!checkbox.checked && radio.checked) {
+            enabled[0]?.querySelector('input[type="radio"]').click();
+          }
+        });
+      };
+      choices.forEach((choice) => {
+        choice.querySelector('input[type="checkbox"]').addEventListener('change', (event) => refresh(event.target));
+        choice.querySelector('input[type="radio"]').addEventListener('change', () => refresh());
+      });
+      refresh();
     })();
   </script>
 </body>

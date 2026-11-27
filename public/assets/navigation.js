@@ -11,6 +11,8 @@
       sidebar.querySelector('.app-sidebar__brand span').textContent = data.siteTitle;
       sidebar.querySelector('.app-sidebar__mark').src = data.siteLogo;
       document.querySelector('link[rel="icon"]').href = data.siteLogo;
+      if (typeof data.activeTheme === 'string') document.documentElement.dataset.theme = data.activeTheme;
+      if (typeof data.colorMode === 'string') document.documentElement.dataset.colorMode = data.colorMode;
     });
   }
 
