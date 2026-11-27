@@ -6,15 +6,27 @@
     const el = $(id);
     return el && el.selectedOptions[0] ? el.selectedOptions[0].textContent.trim() : '';
   };
+  const normalizeCadre = (value) => String(value || '')
+    .replace(/^বিসিএস\s*\((.*)\)$/, '$1')
+    .replace(/পররাষ্ট্র বিষয়ক/g, 'পররাষ্ট্র')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const findCadreOption = (select, data) => {
+    const wanted = [data.cadreId, data.cadreLabel].filter(Boolean).map(normalizeCadre);
+    return [...select.options].find((option) =>
+      wanted.includes(normalizeCadre(option.value)) || wanted.includes(normalizeCadre(option.textContent))
+    );
+  };
   function read() {
     const main = $('form');
     const joining = $('f');
+    const cadreId = main && $('cadre') ? text('cadre') : text('cadreSel');
     return {
       name: text('name'),
       merit: text('merit'),
       reg: text('reg'),
-      cadreId: main && $('cadre') ? text('cadre') : text('cadreSel'),
-      cadreLabel: main && $('cadre') ? optionText('cadre') : optionText('cadreSel'),
+      cadreId,
+      cadreLabel: joining && cadreId === '__other' ? text('cadreTxt') : (main && $('cadre') ? optionText('cadre') : optionText('cadreSel')),
       postId: main && $('post') ? text('post') : text('postSel'),
       postLabel: main && $('post') ? optionText('post') : optionText('postSel'),
       savedAt: new Date().toISOString(),
@@ -38,13 +50,18 @@
       }
     });
     if ($('cadreSel')) {
-      const option = [...$('cadreSel').options].find((o) => o.value === data.cadreId || o.textContent.trim() === data.cadreLabel || o.textContent.includes(data.cadreLabel));
-      if (option) { $('cadreSel').value = option.value; $('cadreSel').dispatchEvent(new Event('change', { bubbles: true })); }
+      let option = findCadreOption($('cadreSel'), data);
+      if (!option && data.cadreLabel) option = [...$('cadreSel').options].find((o) => o.value === '__other');
+      if (option) {
+        $('cadreSel').value = option.value;
+        if (option.value === '__other' && $('cadreTxt')) $('cadreTxt').value = normalizeCadre(data.cadreLabel);
+        $('cadreSel').dispatchEvent(new Event('change', { bubbles: true }));
+      }
       const post = [...$('postSel').options].find((o) => o.value === data.postId || o.textContent.trim() === data.postLabel || (data.postLabel && o.textContent.includes(data.postLabel)));
       if (post) { $('postSel').value = post.value; $('postSel').dispatchEvent(new Event('change', { bubbles: true })); }
     }
     if ($('cadre')) {
-      const option = [...$('cadre').options].find((o) => o.value === data.cadreId || o.textContent.trim() === data.cadreLabel || o.textContent.includes(data.cadreLabel));
+      const option = findCadreOption($('cadre'), data);
       if (option) {
         $('cadre').value = option.value;
         $('cadre').dispatchEvent(new Event('change', { bubbles: true }));

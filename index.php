@@ -41,6 +41,7 @@ $sources = ['declaration' => '?panel=declaration', 'joining' => 'joining-letter?
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><?= h($branding['site_title']) ?></title>
   <meta name="description" content="<?= h($branding['site_description']) ?>">
+  <meta name="robots" content="index,follow,max-image-preview:large">
   <meta name="keywords" content="<?= h($branding['keywords']) ?>">
   <meta name="author" content="<?= h($branding['author']) ?>">
   <meta name="theme-color" content="<?= h($branding['theme_color']) ?>">
@@ -59,6 +60,16 @@ $sources = ['declaration' => '?panel=declaration', 'joining' => 'joining-letter?
   <meta name="twitter:description" content="<?= h($shareDescription) ?>">
   <meta name="twitter:image" content="<?= h($shareImage) ?>">
   <meta name="twitter:image:alt" content="<?= h($branding['share_image_alt']) ?>">
+  <script type="application/ld+json"><?= json_encode([
+      '@context' => 'https://schema.org',
+      '@type' => 'WebApplication',
+      'name' => $branding['site_title'],
+      'description' => $branding['site_description'],
+      'url' => $canonical,
+      'applicationCategory' => 'BusinessApplication',
+      'operatingSystem' => 'Any',
+      'inLanguage' => 'bn-BD',
+  ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?></script>
   <link rel="stylesheet" href="public/assets/navigation.css">
   <link rel="stylesheet" href="public/assets/workspace.css">
   <script src="public/assets/navigation.js" defer></script>
@@ -86,10 +97,27 @@ $sources = ['declaration' => '?panel=declaration', 'joining' => 'joining-letter?
   <main class="workspace-shell">
     <?php foreach ($tabs as $id => $label): ?>
       <section role="tabpanel" id="panel-<?= $id ?>" aria-labelledby="tab-<?= $id ?>"<?= $id === 'declaration' ? '' : ' hidden' ?>>
-        <iframe title="<?= h($label) ?>" data-src="<?= h($sources[$id]) ?>"></iframe>
+        <iframe title="<?= h($label) ?>" data-src="<?= h($sources[$id]) ?>" allowfullscreen></iframe>
       </section>
     <?php endforeach; ?>
   </main>
+  <?php if (!admin_logged_in()): ?>
+    <details class="seo-content">
+      <summary>বিসিএস যোগদানপত্র ও অঙ্গীকারনামা জেনারেটর সম্পর্কে</summary>
+      <div class="seo-content__inner">
+        <h1 id="seo-heading">বিসিএস যোগদানপত্র ও অঙ্গীকারনামা তৈরি করুন</h1>
+        <p>বিসিএসে যোগদানের জন্য প্রয়োজনীয় অঙ্গীকারনামা ও যোগদানপত্রের খসড়া এক জায়গায় তৈরি করুন। ফর্মে তথ্য দিলে প্রিভিউ দেখুন, তারপর Word বা PDF ফাইল ডাউনলোড করুন।</p>
+        <h2>যে কাগজপত্র তৈরি করা যাবে</h2>
+        <ul>
+          <li><strong>অঙ্গীকারনামা:</strong> ব্যক্তিগত তথ্য, স্থায়ী ঠিকানা, ক্যাডার ও নিয়োগের তথ্য দিয়ে অঙ্গীকারনামার খসড়া তৈরি করুন।</li>
+          <li><strong>যোগদানপত্র:</strong> প্রাপক, পদ, ক্যাডার ও যোগদানের তারিখসহ যোগদানপত্র তৈরি করে প্রিভিউ দেখুন।</li>
+        </ul>
+        <h2>কীভাবে ব্যবহার করবেন</h2>
+        <p>সাইডবার থেকে অঙ্গীকারনামা বা যোগদানপত্র বেছে নিয়ে ফর্ম পূরণ করুন। প্রিভিউ মিলিয়ে Word অথবা PDF ডাউনলোড করুন। একই ব্রাউজারে ফর্মের কিছু সাধারণ তথ্য সংরক্ষিত থাকতে পারে, যাতে দুই নথিতে আবার লিখতে না হয়।</p>
+        <p class="seo-content__note">এখানে তৈরি নথি খসড়া হিসেবে ব্যবহার করুন। জমা দেওয়ার আগে সংশ্লিষ্ট কর্তৃপক্ষের নির্দেশনা ও আপনার তথ্য যাচাই করে নিন।</p>
+      </div>
+    </details>
+  <?php endif; ?>
   <script>window.BCS_DEVELOPER = <?= json_encode($developer, $jsonFlags) ?>;</script>
   <?php readfile(__DIR__ . '/resources/workspace-widgets.html'); ?>
 </body>

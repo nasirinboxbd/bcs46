@@ -6,10 +6,8 @@
 <meta name="theme-color" content="#087a55">
 <title>বিসিএস যোগদানপত্র | যোগদানের কাগজপত্র তৈরি করুন</title>
 <meta name="description" content="বিসিএসে যোগদানের যোগদানপত্র (A4) তৈরি করুন, লাইভ প্রিভিউ দেখুন এবং Word বা PDF হিসেবে ডাউনলোড করুন।">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="public/assets/navigation.css">
+<script src="public/assets/preview-fullscreen.js" defer></script>
 <style>
 :root{
   --bg:#eef4f0; --card:#fff; --ink:#14261e; --muted:#5b6e63; --line:#d9e4dd;
@@ -24,7 +22,7 @@
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased;
-  font-family:"Hind Siliguri","NikoshEmb","Noto Sans Bengali","Segoe UI",system-ui,sans-serif}
+  font-family:"Nikosh","Noto Sans Bengali","Segoe UI",system-ui,sans-serif}
 .wrap{max-width:1240px;margin:0 auto;padding:0 16px;position:relative;z-index:1}
 
 /* hero */
@@ -130,7 +128,7 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 40px}
 
     <div class="card">
       <h2><span class="n">১</span> কততম বিসিএস</h2>
-      <p class="sub">বর্তমানে শুধু ৪৫তম বিসিএস চালু আছে। অন্যগুলো শীঘ্রই যুক্ত হবে।</p>
+      <p class="sub">অ্যাডমিন প্যানেলে নির্ধারিত বিসিএসের তথ্য ব্যবহার করা হচ্ছে।</p>
       <label for="bcs">বিসিএস বাছুন</label>
       <select id="bcs">
         <option value="45" selected>৪৫তম বিসিএস</option>
@@ -162,11 +160,12 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 40px}
 
     <div class="card">
       <h2><span class="n">৩</span> ক্যাডার ও পদ</h2>
-      <p class="sub">তালিকায় না থাকলে “অন্যান্য” বেছে হাতে লিখুন।</p>
+      <p class="sub">ক্যাডারের নাম অঙ্গীকারনামা পেজ থেকে স্বয়ংক্রিয়ভাবে আসবে। পদ এখানে বেছে নিন।</p>
       <div class="grid">
         <div>
-          <label for="cadreSel">ক্যাডারের নাম</label>
-          <select id="cadreSel"></select>
+          <label for="cadreDisplay">ক্যাডারের নাম</label>
+          <input id="cadreDisplay" readonly value="অঙ্গীকারনামা পেজে ক্যাডার বেছে নিন">
+          <select id="cadreSel" class="hidden" aria-hidden="true" tabindex="-1"></select>
         </div>
         <div>
           <label for="postSel">পদের নাম</label>
@@ -236,8 +235,8 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 40px}
   </form>
 </section>
 
-<aside>
-  <div class="pv-head"><b>👁 যোগদানপত্রের প্রিভিউ</b><span>লাইভ · A4 · <span style="color:#b36b00">হলুদ [ ]</span> = পূরণ বাকি</span></div>
+<aside class="preview-fullscreen-panel" id="joiningPreview">
+  <div class="pv-head"><b>👁 যোগদানপত্রের প্রিভিউ</b><span>লাইভ · A4 · <span style="color:#b36b00">হলুদ [ ]</span> = পূরণ বাকি</span><button type="button" class="preview-fullscreen-toggle" data-preview-target="joiningPreview" aria-pressed="false">⛶ পূর্ণ পর্দায় দেখুন</button></div>
   <div class="sheet"><canvas id="cv" aria-label="যোগদানপত্রের A4 প্রিভিউ"></canvas></div>
   <div class="specs"><span>A4 (২১০×২৯৭ মিমি)</span><span>পোর্ট্রেট</span><span>চার পাশে ১″ মার্জিন</span><span>ফন্ট: Nikosh ১২</span></div>
 </aside>
@@ -269,7 +268,9 @@ const SITE_SETTINGS = Object.assign({
   exam_year: "2023",
   joining_date: "2026-11-01",
   notification_date: "2026-10-14",
-  commission_date: "2025-12-14"
+  commission_date: "2025-12-14",
+  commission_no: "৮০.০০.০০০০.২০২.৬৪.০১৬.২৫-১৭১",
+  notification_no: "০৫.০০.০০০০.১৪৭.১১.০১৬.২৫-৫১৮"
 }, window.BCS_SETTINGS || {});
 const SITE_BN = "০১২৩৪৫৬৭৮৯";
 const siteBn = value => String(value ?? "").replace(/[0-9]/g, d => SITE_BN[d]);
@@ -281,9 +282,9 @@ const BCS = {
     exam_no: siteBn(siteBcsNumber),
     exam_year: siteBn(SITE_SETTINGS.exam_year || "2023"),
     psc_date: SITE_SETTINGS.commission_date || "2025-12-14",
-    psc_no:"৮০.০০.০০০০.২০২.৬৪.০১৬.২৫-১৭১",
+    psc_no:siteBn(SITE_SETTINGS.commission_no || "৮০.০০.০০০০.২০২.৬৪.০১৬.২৫-১৭১"),
     gov_date: SITE_SETTINGS.notification_date || "2026-10-14",
-    gov_no:"০৫.০০.০০০০.১৪৭.১১.০১৬.২৫-৫১৮",
+    gov_no:siteBn(SITE_SETTINGS.notification_no || "০৫.০০.০০০০.১৪৭.১১.০১৬.২৫-৫১৮"),
     join: SITE_SETTINGS.joining_date || "2026-11-01"
   }
 };
@@ -344,7 +345,8 @@ let toMode="auto";
 const FIELDS=["name","merit","reg","cadreSel","postSel","cadreTxt","postTxt","toLine1","toLine2","joinDate","bnDate"];
 
 function fillCadreSelect(){
-  $("cadreSel").innerHTML = CADRES.map(c=>`<option value="${c.id}">${c.name}</option>`).join("")
+  $("cadreSel").innerHTML = `<option value="">অঙ্গীকারনামা পেজে ক্যাডার বেছে নিন</option>`
+    + CADRES.map(c=>`<option value="${c.id}">${c.name}</option>`).join("")
     + `<option value="${OTHER}">অন্যান্য (হাতে লিখুন)</option>`;
 }
 function fillPostSelect(keep){
@@ -366,7 +368,9 @@ function currentTo(){
   return [$("toLine1").value.trim(), $("toLine2").value.trim()];
 }
 function syncUI(){
-  $("cadreTxtBox").classList.toggle("hidden",$("cadreSel").value!==OTHER);
+  const selectedCadre=currentCadre();
+  $("cadreDisplay").value=selectedCadre?selectedCadre.name:"অঙ্গীকারনামা পেজে ক্যাডার বেছে নিন";
+  $("cadreTxtBox").classList.add("hidden");
   $("postTxtBox").classList.toggle("hidden",$("postSel").value!==OTHER);
   const t=autoTo();
   if(toMode==="auto" && !t){ setMode("manual",true); return; }
@@ -390,8 +394,8 @@ function renderLock(){
   const b=BCS[$("bcs").value];
   $("lockBox").innerHTML =
    `<div class="row"><i>🎓</i><div><b>${b.exam_no}তম বিসিএস পরীক্ষা, ${b.exam_year}</b><br><small>স্থির তথ্য — বদলানো যাবে না</small></div></div>
-    <div class="row"><i>🏛</i><div>বাংলাদেশ সরকারী কর্ম কমিশনের বিজ্ঞপ্তি<br><small>${fmtNum(b.psc_date)} · নম্বর ${b.psc_no}</small></div></div>
-    <div class="row"><i>📜</i><div>জনপ্রশাসন মন্ত্রণালয়ের নবনিয়োগ শাখার প্রজ্ঞাপন<br><small>${fmtNum(b.gov_date)} · নম্বর ${b.gov_no}</small></div></div>`;
+    <div class="row"><i>🏛</i><div>বাংলাদেশ সরকারী কর্ম কমিশনের বিজ্ঞপ্তি<br><small>${fmtNum(b.psc_date)} · নম্বর ${esc(b.psc_no)}</small></div></div>
+    <div class="row"><i>📜</i><div>জনপ্রশাসন মন্ত্রণালয়ের নবনিয়োগ শাখার প্রজ্ঞাপন<br><small>${fmtNum(b.gov_date)} · নম্বর ${esc(b.gov_no)}</small></div></div>`;
 }
 
 function vals(){
@@ -418,7 +422,7 @@ function drawLetter(cv, v, forPdf){
   cv.width=PW; cv.height=PH;
   const ctx=cv.getContext("2d");
   ctx.fillStyle="#fff"; ctx.fillRect(0,0,PW,PH);
-  ctx.font=`${FS}px NikoshEmb, Nikosh, "Hind Siliguri", sans-serif`;
+  ctx.font=`${FS}px Nikosh, sans-serif`;
   ctx.textBaseline="alphabetic";
   const m=ctx.measureText("মা"); const ASC=m.fontBoundingBoxAscent||FS*.95, DSC=m.fontBoundingBoxDescent||FS*.5;
   const LH=ASC+DSC, SP=ctx.measureText(" ").width, CW=PW-2*MG;
@@ -518,7 +522,7 @@ function save(){ try{
 function refresh(){ renderPreview(); save(); }
 function applyDefaults(){
   ["name","merit","reg","cadreTxt","postTxt","toLine1","toLine2"].forEach(id=>$(id).value="");
-  $("cadreSel").value="admin"; fillPostSelect();
+  $("cadreSel").value=""; fillPostSelect();
   $("joinDate").value=BCS[$("bcs").value].join; $("bnDate").dataset.manual="0"; $("bnDate").value=banglaDate($("joinDate").value);
   toMode="auto";
 }
@@ -549,6 +553,39 @@ $("postSel").addEventListener("change",()=>{ syncUI(); refresh(); });
 $("toAuto").addEventListener("click",()=>setMode("auto"));
 $("toManual").addEventListener("click",()=>setMode("manual"));
 $("bcs").addEventListener("change",()=>{ renderLock(); refresh(); });
+if("BroadcastChannel" in window){
+  const settingsChannel=new BroadcastChannel("bcs-site-settings");
+  settingsChannel.addEventListener("message",({data})=>{
+    if(!data) return;
+    let changed=false;
+    if(typeof data.examYear==="string" && data.examYear!==SITE_SETTINGS.exam_year){
+      SITE_SETTINGS.exam_year=data.examYear; BCS[siteBcsKey].exam_year=siteBn(data.examYear); changed=true;
+    }
+    if(typeof data.joiningDate==="string" && data.joiningDate!==SITE_SETTINGS.joining_date){
+      const previousDefault=BCS[siteBcsKey].join;
+      SITE_SETTINGS.joining_date=data.joiningDate;
+      BCS[siteBcsKey].join=data.joiningDate || "2026-11-01";
+      if($("joinDate").value===previousDefault){
+        $("joinDate").value=BCS[siteBcsKey].join;
+        if($("bnDate").dataset.manual!=="1") $("bnDate").value=banglaDate($("joinDate").value);
+      }
+      changed=true;
+    }
+    if(typeof data.commissionDate==="string" && data.commissionDate!==SITE_SETTINGS.commission_date){
+      SITE_SETTINGS.commission_date=data.commissionDate; BCS[siteBcsKey].psc_date=data.commissionDate; changed=true;
+    }
+    if(typeof data.notificationDate==="string" && data.notificationDate!==SITE_SETTINGS.notification_date){
+      SITE_SETTINGS.notification_date=data.notificationDate; BCS[siteBcsKey].gov_date=data.notificationDate; changed=true;
+    }
+    if(typeof data.commissionNo==="string" && data.commissionNo!==SITE_SETTINGS.commission_no){
+      SITE_SETTINGS.commission_no=data.commissionNo; BCS[siteBcsKey].psc_no=siteBn(data.commissionNo); changed=true;
+    }
+    if(typeof data.notificationNo==="string" && data.notificationNo!==SITE_SETTINGS.notification_no){
+      SITE_SETTINGS.notification_no=data.notificationNo; BCS[siteBcsKey].gov_no=siteBn(data.notificationNo); changed=true;
+    }
+    if(changed){ renderLock(); refresh(); }
+  });
+}
 $("resetBtn").addEventListener("click",()=>{
   if(!confirm("সব ঘর আগের অবস্থায় ফিরে যাবে। নিশ্চিত?")) return;
   applyDefaults(); document.querySelectorAll(".invalid").forEach(i=>i.classList.remove("invalid")); syncUI(); refresh();
@@ -629,10 +666,8 @@ $("pdfBtn").addEventListener("click",async()=>{
 /* ================= boot ================= */
 let nikoshOK=false;
 const fontPromise=(async()=>{
-  try{ // Nikosh.ttf — index.html-এর পাশে রাখুন (ফাইলটি না থাকলে বিকল্প ফন্ট ব্যবহার হবে)
-    const ff=new FontFace("NikoshEmb","url(Nikosh.ttf)"); await ff.load(); document.fonts.add(ff); nikoshOK=true;
-  }catch(e){ try{ await document.fonts.load('16px "Hind Siliguri"','বাংলা'); }catch(_){} }
-  $("fontNote").textContent = nikoshOK ? "" : " ⚠ Nikosh.ttf পাওয়া যায়নি — প্রিভিউ ও PDF-এ বিকল্প বাংলা ফন্ট ব্যবহার হচ্ছে (Word ফাইলে Nikosh-ই থাকবে)।";
+  try{ await document.fonts.load('16px "Nikosh"','বাংলা'); await document.fonts.ready; nikoshOK=true; }catch(e){}
+  $("fontNote").textContent = nikoshOK ? "" : " ⚠ Nikosh ফন্ট লোড হয়নি — পেজটি রিফ্রেশ করে আবার চেষ্টা করুন।";
   fontReady=true; renderPreview();
 })();
 renderLock(); load(); renderPreview();

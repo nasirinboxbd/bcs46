@@ -8,6 +8,7 @@
     />
     <!-- site-branding -->
     <link rel="stylesheet" href="public/assets/navigation.css" />
+    <script src="public/assets/preview-fullscreen.js" defer></script>
     <style id="nikoshFont">
       @font-face {
         font-family: "Nikosh";
@@ -721,7 +722,7 @@
 
         <section class="card">
           <h2><i>৩</i>ক্যাডার ও নিয়োগ সংক্রান্ত</h2>
-          <p class="sub">৪৫তম বিসিএসের ক্যাডার ও পদের তালিকা থেকে</p>
+          <p class="sub" id="cadreBcsHint">বিসিএসের ক্যাডার ও পদের তালিকা থেকে</p>
           <div class="g">
             <div>
               <label>ক্যাডারের নাম</label
@@ -797,7 +798,7 @@
           </button>
         </section>
       </div>
-      <aside class="card" id="pvCard">
+      <aside class="card preview-fullscreen-panel" id="pvCard">
         <div class="pvhead">
           <h2><i>👁</i>অঙ্গীকারনামার প্রিভিউ</h2>
           <p class="sub">
@@ -810,6 +811,7 @@
             ><span>নিচে ১.৫″</span><span>ফন্ট: Nikosh</span>
           </div>
           <p id="pvmeta"></p>
+          <button type="button" class="preview-fullscreen-toggle" data-preview-target="pvCard" aria-pressed="false">⛶ পূর্ণ পর্দায় দেখুন</button>
         </div>
         <div id="pvbox"><div id="pv"></div></div>
       </aside>
@@ -9158,6 +9160,8 @@
           joining_date: "",
           notification_date: "2026-10-14",
           commission_date: "2025-12-14",
+          commission_no: "৮০.০০.০০০০.২০২.৬৪.০১৬.২৫-১৭১",
+          notification_no: "০৫.০০.০০০০.১৪৭.১১.০১৬.২৫-৫১৮",
           show_cadre_id: true,
         },
         window.BCS_SETTINGS || {},
@@ -9560,10 +9564,29 @@
         const commissionStamp = stamp(SITE_SETTINGS.commission_date);
         const notificationText = shortDate(SITE_SETTINGS.notification_date);
         const commissionText = shortDate(SITE_SETTINGS.commission_date);
+        const notificationFullDate = SITE_SETTINGS.notification_date
+          ? dateText(SITE_SETTINGS.notification_date).split("/")[0].replace(",", "") +
+            "/" +
+            toBn(String(SITE_SETTINGS.notification_date).split("-")[2]) +
+            " " +
+            GM[Number(String(SITE_SETTINGS.notification_date).split("-")[1]) - 1] +
+            " " +
+            toBn(String(SITE_SETTINGS.notification_date).split("-")[0]) +
+            " খ্রিষ্টাব্দ"
+          : "";
+        const commissionNo = esc(toBn(SITE_SETTINGS.commission_no || "৮০.০০.০০০০.২০২.৬৪.০১৬.২৫-১৭১"));
+        const notificationNo = esc(toBn(SITE_SETTINGS.notification_no || "০৫.০০.০০০০.১৪৭.১১.০১৬.২৫-৫১৮"));
         if (commissionStamp) x = x.replace(/১৪-১০-২০২৫/g, commissionStamp);
         if (notificationStamp) x = x.replace(/১৪-১০-২০২৬/g, notificationStamp);
         if (commissionText) x = x.replace(/১৪ ডিসেম্বর ২০২৫/g, commissionText);
+        if (notificationFullDate)
+          x = x.replace(
+            /২৯ আশ্বিন ১৪৩৩ বঙ্গাব্দ\/১৪ অক্টোবর ২০২৬ খ্রিষ্টাব্দ/g,
+            notificationFullDate,
+          );
         if (notificationText) x = x.replace(/১৪ অক্টোবর ২০২৬/g, notificationText);
+        x = x.split("৮০.০০.০০০০.২০২.৬৪.০১৬.২৫-১৭১").join(commissionNo);
+        x = x.split("০৫.০০.০০০০.১৪৭.১১.০১৬.২৫-৫১৮").join(notificationNo);
         x = x.replace(/পরীক্ষা-২০২২/g, "পরীক্ষা-" + toBn(SITE_SETTINGS.exam_year));
         x = x.replace(/পরীক্ষা, ২০২২/g, "পরীক্ষা, " + toBn(SITE_SETTINGS.exam_year));
         x = x.replace(/৪৫তম বিসিএস/g, toBn(SITE_SETTINGS.bcs_number) + "তম বিসিএস");
@@ -9575,6 +9598,8 @@
         );
         for (const k in v)
           x = x.split("{{" + k + "}}").join(esc(v[k] || "……………"));
+        // The template preserves a space immediately before several commas.
+        x = x.replace(/\s+,/g, ",");
         if (v.joiningdate)
           x = x.replace(/নিয়োগপ্রাপ্ত।/g, "নিয়োগপ্রাপ্ত। যোগদানের তারিখ: " + esc(v.joiningdate) + "।");
         z.file("word/document.xml", x);
@@ -9713,10 +9738,28 @@
       if ("BroadcastChannel" in window) {
         const settingsChannel = new BroadcastChannel("bcs-site-settings");
         settingsChannel.addEventListener("message", ({ data }) => {
-          if (typeof data?.showCadreId !== "boolean" || data.showCadreId === SITE_SETTINGS.show_cadre_id) return;
-          SITE_SETTINGS.show_cadre_id = data.showCadreId;
-          $("cadreIdField").hidden = !data.showCadreId;
-          if (!data.showCadreId) $("pv").replaceChildren();
+          if (!data) return;
+          let changed = false;
+          if (typeof data.showCadreId === "boolean" && data.showCadreId !== SITE_SETTINGS.show_cadre_id) {
+            SITE_SETTINGS.show_cadre_id = data.showCadreId;
+            $("cadreIdField").hidden = !data.showCadreId;
+            if (!data.showCadreId) $("pv").replaceChildren();
+            changed = true;
+          }
+          for (const [key, value] of Object.entries({
+            exam_year: data.examYear,
+            joining_date: data.joiningDate,
+            commission_date: data.commissionDate,
+            notification_date: data.notificationDate,
+            commission_no: data.commissionNo,
+            notification_no: data.notificationNo,
+          })) {
+            if (typeof value === "string" && value !== SITE_SETTINGS[key]) {
+              SITE_SETTINGS[key] = value;
+              changed = true;
+            }
+          }
+          if (!changed) return;
           last = JSON.stringify(vals());
           refresh();
         });
@@ -9728,6 +9771,15 @@
           const t = document.createElement("div");
           await docx.renderAsync(await buildDecl(), t, null, RO);
           if (n !== seq) return;
+          const textWalker = document.createTreeWalker(t, NodeFilter.SHOW_TEXT);
+          const textNodes = [];
+          while (textWalker.nextNode()) textNodes.push(textWalker.currentNode);
+          textNodes.forEach((node, index) => {
+            node.nodeValue = node.nodeValue.replace(/\s+,/g, ",");
+            if (index > 0 && /^\s*,/.test(node.nodeValue)) {
+              textNodes[index - 1].nodeValue = textNodes[index - 1].nodeValue.replace(/\s+$/g, "");
+            }
+          });
           $("pv").replaceChildren(...t.childNodes);
           fit();
           const np = $("pv").querySelectorAll("section.docx").length;
@@ -9757,6 +9809,7 @@
 
       /* ব্রাউজারের Local Storage-এ ফর্মের তথ্য সংরক্ষণ */
       const LOCAL_FORM_KEY = "bcsJoiningDocsForm_v1";
+      let restoringLocalForm = false;
       function formControls() {
         return [
           ...document.querySelectorAll(
@@ -9764,7 +9817,8 @@
           ),
         ];
       }
-      function saveLocalForm() {
+      function saveLocalForm(showMessage = false) {
+        if (restoringLocalForm) return;
         try {
           const data = {};
           for (const el of formControls()) {
@@ -9779,22 +9833,21 @@
             LOCAL_FORM_KEY,
             JSON.stringify({ savedAt: new Date().toISOString(), data }),
           );
-          toast("আপনার তথ্য এই ব্রাউজারে সংরক্ষণ করা হয়েছে।");
+          if (showMessage) toast("আপনার তথ্য এই ব্রাউজারে সংরক্ষণ করা হয়েছে।");
         } catch (e) {
-          toast(
-            "তথ্য সংরক্ষণ করা যায়নি। ব্রাউজারের Local Storage অনুমতি পরীক্ষা করুন।",
-          );
+          if (showMessage) toast("তথ্য সংরক্ষণ করা যায়নি। ব্রাউজারের Local Storage অনুমতি পরীক্ষা করুন।");
         }
       }
-      function loadLocalForm() {
+      function loadLocalForm(showMessage = true) {
         try {
           const raw = localStorage.getItem(LOCAL_FORM_KEY);
           if (!raw) {
-            toast("কোনো সংরক্ষিত তথ্য পাওয়া যায়নি।");
+            if (showMessage) toast("কোনো সংরক্ষিত তথ্য পাওয়া যায়নি।");
             return;
           }
           const saved = JSON.parse(raw),
             data = saved.data || {};
+          restoringLocalForm = true;
           // প্রথমে ঠিকানার ধরন/জেলা ইত্যাদি বসিয়ে dependent dropdown হালনাগাদ করি।
           for (const el of formControls()) {
             const key = el.id || "radio:" + el.name;
@@ -9832,15 +9885,20 @@
             )
               $("datefull").value = dateText($("date").value);
             refresh();
-            toast("সংরক্ষিত তথ্য ফর্মে ফিরিয়ে আনা হয়েছে।");
+            restoringLocalForm = false;
+            if (showMessage) toast("সংরক্ষিত তথ্য ফর্মে ফিরিয়ে আনা হয়েছে।");
           }, 350);
         } catch (e) {
+          restoringLocalForm = false;
           console.error(e);
-          toast("সংরক্ষিত তথ্য পড়া যায়নি।");
+          if (showMessage) toast("সংরক্ষিত তথ্য পড়া যায়নি।");
         }
       }
-      $("bSaveLocal").addEventListener("click", saveLocalForm);
+      $("bSaveLocal").addEventListener("click", () => saveLocalForm(true));
       $("bLoadLocal").addEventListener("click", loadLocalForm);
+      $("form").addEventListener("input", () => saveLocalForm());
+      $("form").addEventListener("change", () => saveLocalForm());
+      loadLocalForm(false);
 
       $("bDocx").onclick = () =>
         busy($("bDocx"), async () => {
@@ -10163,7 +10221,7 @@
           hex = [...title]
             .map((ch) => ch.charCodeAt(0).toString(16).padStart(4, "0"))
             .join("");
-        obj(io, () => push("<< /Title <FEFF" + hex + "> /Producer (BCS45) >>"));
+        obj(io, () => push("<< /Title <FEFF" + hex + "> /Producer (BCS" + SITE_SETTINGS.bcs_number + ") >>"));
         const xr = len;
         push("xref\n0 " + (io + 1) + "\n0000000000 65535 f \n");
         for (let n = 1; n <= io; n++)
@@ -10218,7 +10276,7 @@
             prog(true, "ডাউনলোড হচ্ছে…", 98);
             await save(
               fname("pdf"),
-              buildPdf(out, "৪৫তম বিসিএস অঙ্গীকারনামা"),
+              buildPdf(out, toBn(SITE_SETTINGS.bcs_number) + "তম বিসিএস অঙ্গীকারনামা"),
               "BCS_Angikarnama.pdf",
             );
             if (N !== 6)
@@ -10278,6 +10336,8 @@
         const bcsLabel = localBn(publicSettings.bcs_number || "45") + "তম বিসিএস";
         const chip = document.querySelector(".hero .chip");
         if (chip) chip.textContent = bcsLabel;
+        const cadreBcsHint = document.getElementById("cadreBcsHint");
+        if (cadreBcsHint) cadreBcsHint.textContent = bcsLabel + "-এর ক্যাডার ও পদের তালিকা থেকে";
         updateScrollProgress();
         updateBarHeight();
         updateStatus();

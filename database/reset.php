@@ -6,6 +6,16 @@ if (PHP_SAPI !== 'cli') {
     exit(1);
 }
 
+// Check the MySQL PDO driver before prompting or attempting any database changes.
+if (!extension_loaded('pdo_mysql')) {
+    $iniFile = php_ini_loaded_file();
+    fwrite(STDERR, "Reset failed: PHP CLI does not have the pdo_mysql extension enabled. No database changes were made.\n");
+    fwrite(STDERR, "CLI PHP: " . PHP_BINARY . "\n");
+    fwrite(STDERR, "php.ini: " . ($iniFile !== false ? $iniFile : 'not loaded') . "\n");
+    fwrite(STDERR, "Run php --ini to find the CLI php.ini, enable extension=pdo_mysql there, then open a new terminal and verify with php -m.\n");
+    exit(1);
+}
+
 $config = require __DIR__ . '/../config/config.php';
 $db = $config['db'] ?? [];
 $name = (string)($db['name'] ?? '');

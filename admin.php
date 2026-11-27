@@ -81,12 +81,22 @@ try {
             if ($bcs === '' || $year < 1900 || $year > 2200) {
                 throw new RuntimeException('বিসিএস নম্বর ও পরীক্ষার সাল সঠিকভাবে দিন।');
             }
+            $commissionNo = trim((string)($_POST['commission_no'] ?? ''));
+            $notificationNo = trim((string)($_POST['notification_no'] ?? ''));
+            if ($commissionNo === '' || $notificationNo === '' || mb_strlen($commissionNo) > 100 || mb_strlen($notificationNo) > 100) {
+                throw new RuntimeException('কমিশনের চিঠি ও প্রজ্ঞাপনের স্মারক নম্বর ১–১০০ অক্ষরের মধ্যে দিন।');
+            }
             $date = static function (string $key): ?string {
                 $value = trim((string)($_POST[$key] ?? ''));
                 if ($value === '') return null;
                 $d = DateTime::createFromFormat('Y-m-d', $value);
                 return $d && $d->format('Y-m-d') === $value ? $value : throw new RuntimeException('তারিখের ঘরে সঠিক তারিখ দিন।');
             };
+            $notificationDate = $date('notification_date');
+            $commissionDate = $date('commission_date');
+            if ($notificationDate === null || $commissionDate === null) {
+                throw new RuntimeException('প্রজ্ঞাপন ও কমিশনের তারিখ পূরণ করুন।');
+            }
             $url = static function (string $key): string {
                 $value = trim((string)($_POST[$key] ?? ''));
                 if ($value !== '' && !filter_var($value, FILTER_VALIDATE_URL)) {
@@ -146,9 +156,10 @@ try {
             }
             $developerImage = $uploadImage('developer_image_file', 'developer',
                 trim((string) ($_POST['developer_image'] ?? '')) ?: 'public/assets/developer.jpeg');
-            $stmt = db()->prepare('UPDATE site_settings SET bcs_number = ?, exam_year = ?, joining_date = ?, notification_date = ?, commission_date = ?, show_cadre_id = ?, developer_name = ?, developer_subtitle = ?, developer_workplace = ?, developer_bcs46 = ?, developer_bcs47 = ?, developer_whatsapp = ?, developer_facebook = ?, developer_image = ?, branding = ? WHERE id = 1');
+            $stmt = db()->prepare('UPDATE site_settings SET bcs_number = ?, exam_year = ?, joining_date = ?, notification_date = ?, commission_date = ?, commission_no = ?, notification_no = ?, show_cadre_id = ?, developer_name = ?, developer_subtitle = ?, developer_workplace = ?, developer_bcs46 = ?, developer_bcs47 = ?, developer_whatsapp = ?, developer_facebook = ?, developer_image = ?, branding = ? WHERE id = 1');
             $stmt->execute([
-                $bcs, $year, $date('joining_date'), $date('notification_date'), $date('commission_date'),
+                $bcs, $year, $date('joining_date'), $notificationDate, $commissionDate,
+                $commissionNo, $notificationNo,
                 !empty($_POST['show_cadre_id']) ? 1 : 0,
                 trim((string) ($_POST['developer_name'] ?? '')), trim((string) ($_POST['developer_subtitle'] ?? '')),
                 trim((string) ($_POST['developer_workplace'] ?? '')), trim((string) ($_POST['developer_bcs46'] ?? '')),
@@ -177,11 +188,12 @@ $branding = site_branding($settings);
   <title>Admin panel | BCS joining documents</title>
   <link rel="stylesheet" href="public/assets/navigation.css">
   <style>
-    @font-face{font-family:Nikosh;src:local(Nikosh);font-display:swap}
+    @font-face{font-family:Nikosh;src:url("public/assets/nikosh.ttf") format("truetype");font-display:swap}
     :root{--ink:#14231c;--muted:#6b7b72;--line:#dce8e1;--surface:#fff;--bg:#f3f8f5;--brand:#087a55;--brand-dark:#064e3b;--soft:#e7f5ee}
     *{box-sizing:border-box} body{margin:0;background:radial-gradient(circle at 5% 0,#dff5e9,transparent 28rem),var(--bg);color:var(--ink);font:16px/1.6 Nikosh,"Noto Sans Bengali",system-ui,sans-serif}
-    .shell{width:min(100% - 32px,1040px);margin:0 auto}.top{padding:28px 0 50px;background:linear-gradient(120deg,var(--brand-dark),var(--brand));color:#fff}.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px}.brand{font-size:20px;font-weight:800}.eyebrow{opacity:.78;font-size:13px}.top h1{font-size:clamp(28px,5vw,44px);line-height:1.2;margin:40px 0 8px}.top p{margin:0;opacity:.85;max-width:650px}.link{color:#fff;text-decoration:none;border:1px solid #ffffff55;border-radius:999px;padding:8px 14px}.wrap{margin:-28px auto 60px}.panel{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:clamp(20px,4vw,34px);box-shadow:0 18px 50px #164d3420}.panel h2{margin:0 0 5px;font-size:25px}.sub{margin:0 0 22px;color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 22px}.field{display:grid;gap:6px}.field.full{grid-column:1/-1}label{font-weight:700;font-size:15px}input{width:100%;min-height:46px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fbfdfc;color:var(--ink);font:inherit}input:focus{outline:3px solid #0f9d6e33;border-color:var(--brand)}.help{font-size:13px;color:var(--muted)}.toggle{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:14px;padding:14px;background:#fbfdfc}.toggle input{width:20px;min-height:20px;accent-color:var(--brand)}button{border:0;border-radius:12px;padding:12px 18px;background:var(--brand);color:#fff;font:inherit;font-weight:700;cursor:pointer}button:hover{background:#0f9d6e}.actions{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:28px;padding-top:22px;border-top:1px solid var(--line)}.alert{border-radius:12px;padding:12px 14px;margin-bottom:18px}.error{background:#fff0ef;color:#a52b27}.success{background:var(--soft);color:var(--brand-dark)}.login{max-width:460px;margin:0 auto}.empty{color:var(--muted)}@media(max-width:680px){.shell{width:min(100% - 20px,1040px)}.grid{grid-template-columns:1fr}.field.full{grid-column:auto}.top{padding-top:18px}.top h1{margin-top:32px}.actions{align-items:stretch;flex-direction:column}.actions button{width:100%}}
+    .shell{width:min(100% - 32px,1040px);margin:0 auto}.top{padding:28px 0 50px;background:linear-gradient(120deg,var(--brand-dark),var(--brand));color:#fff}.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px}.brand{font-size:20px;font-weight:800}.eyebrow{opacity:.78;font-size:13px}.top h1{font-size:clamp(28px,5vw,44px);line-height:1.2;margin:40px 0 8px}.top p{margin:0;opacity:.85;max-width:650px}.link{color:#fff;text-decoration:none;border:1px solid #ffffff55;border-radius:999px;padding:8px 14px}.wrap{margin:-28px auto 60px}.panel{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:clamp(20px,4vw,34px);box-shadow:0 18px 50px #164d3420}.panel h2{margin:0 0 5px;font-size:25px}.sub{margin:0 0 22px;color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:18px 22px}.field{display:grid;align-content:start;gap:6px}.field.full{grid-column:1/-1}label{font-weight:700;font-size:15px}input{width:100%;min-height:46px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fbfdfc;color:var(--ink);font:inherit}input:focus{outline:3px solid #0f9d6e33;border-color:var(--brand)}.help{font-size:13px;color:var(--muted)}.toggle{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:14px;padding:14px;background:#fbfdfc}.toggle input{width:20px;min-height:20px;accent-color:var(--brand)}button{border:0;border-radius:12px;padding:12px 18px;background:var(--brand);color:#fff;font:inherit;font-weight:700;cursor:pointer}button:hover{background:#0f9d6e}.actions{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:28px;padding-top:22px;border-top:1px solid var(--line)}.alert{border-radius:12px;padding:12px 14px;margin-bottom:18px}.error{background:#fff0ef;color:#a52b27}.success{background:var(--soft);color:var(--brand-dark)}.login{max-width:460px;margin:0 auto}.empty{color:var(--muted)}@media(max-width:680px){.shell{width:min(100% - 20px,1040px)}.grid{grid-template-columns:1fr}.field.full{grid-column:auto}.top{padding-top:18px}.top h1{margin-top:32px}.actions{align-items:stretch;flex-direction:column}.actions button{width:100%}}
     .developer-editor h3{margin:10px 0 0;font-size:20px}.developer-preview{display:flex;align-items:center;gap:18px;padding:18px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(135deg,#edf9f2,#fff)}.developer-preview img{width:92px;height:92px;border-radius:50%;object-fit:cover;border:4px solid #fff;box-shadow:0 8px 20px #164d3425}.developer-preview h3{margin:0;font-size:22px}.developer-preview p{margin:2px 0;color:var(--muted)}.developer-preview a{display:inline-block;margin-top:8px;color:#1877f2;font-weight:700;text-decoration:none}@media(max-width:680px){.developer-preview{align-items:flex-start;flex-direction:column}}
+    .image-upload{display:grid;grid-template-columns:112px minmax(0,1fr);align-items:center;gap:18px;padding:16px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(135deg,#f5fbf7,#fff)}.image-upload img{width:112px;height:100px;object-fit:contain;border:1px solid var(--line);border-radius:14px;background:#fff;padding:8px}.image-upload img.avatar{width:100px;height:100px;object-fit:cover;border-radius:50%}.upload-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;padding:9px 14px;border:1px solid #b9dec9;border-radius:10px;background:#fff;color:var(--brand-dark);font-weight:700;cursor:pointer}.upload-button:hover{background:var(--soft)}.image-upload input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}.upload-name{display:block;min-height:20px;margin-top:6px;font-size:13px;color:var(--muted)}
   </style>
 </head>
 <body>
@@ -200,20 +212,21 @@ $branding = site_branding($settings);
           <div class="field"><label for="bcs_number">কততম বিসিএস</label><input id="bcs_number" name="bcs_number" value="<?php echo h($settings['bcs_number']); ?>" required><span class="help">যেমন: ৪৫ বা 45</span></div>
           <div class="field"><label for="exam_year">বিসিএস পরীক্ষার সাল</label><input id="exam_year" name="exam_year" type="number" min="1900" max="2200" value="<?php echo h($settings['exam_year']); ?>" required></div>
           <div class="field"><label for="joining_date">যোগদানের তারিখ</label><input id="joining_date" name="joining_date" type="date" value="<?php echo h($settings['joining_date']); ?>"><span class="help">প্রয়োজনে ফাঁকা রাখতে পারবেন</span></div>
-          <div class="field"><label for="notification_date">প্রজ্ঞাপনের তারিখ</label><input id="notification_date" name="notification_date" type="date" value="<?php echo h($settings['notification_date']); ?>"></div>
-          <div class="field"><label for="commission_date">কমিশনের চিঠির তারিখ</label><input id="commission_date" name="commission_date" type="date" value="<?php echo h($settings['commission_date']); ?>"></div>
+          <div class="field full"><h3>বাংলাদেশ সরকারি কর্মকমিশনের বিজ্ঞপ্তি</h3><p class="help">তারিখ ও বিজ্ঞপ্তি নম্বর পরিবর্তন করলে যোগদানপত্রে আপডেট হবে।</p></div>
+          <div class="field"><label for="commission_date">বিজ্ঞপ্তির তারিখ</label><input id="commission_date" name="commission_date" type="date" value="<?php echo h($settings['commission_date']); ?>" required></div>
+          <div class="field"><label for="commission_no">বিজ্ঞপ্তি নম্বর</label><input id="commission_no" name="commission_no" maxlength="100" value="<?php echo h($settings['commission_no']); ?>" required><span class="help">উদাহরণ: ৮০.০০.০০০০.২০২.৬৪.০১৬.২৫-১৭১</span></div>
+          <div class="field full"><h3>জনপ্রশাসন মন্ত্রণালয়ের নবনিয়োগ শাখার প্রজ্ঞাপন</h3></div>
+          <div class="field"><label for="notification_date">প্রজ্ঞাপনের তারিখ</label><input id="notification_date" name="notification_date" type="date" value="<?php echo h($settings['notification_date']); ?>" required></div>
+          <div class="field"><label for="notification_no">প্রজ্ঞাপন নম্বর</label><input id="notification_no" name="notification_no" maxlength="100" value="<?php echo h($settings['notification_no']); ?>" required><span class="help">উদাহরণ: ০৫.০০.০০০০.১৪৭.১১.০১৬.২৫-৫১৮</span></div>
           <div class="field full"><label class="toggle" for="show_cadre_id"><input id="show_cadre_id" name="show_cadre_id" type="checkbox" value="1" <?php echo !empty($settings['show_cadre_id']) ? 'checked' : ''; ?>><span><strong>ক্যাডার পরিচিতি নম্বর দেখান</strong><br><span class="help">বন্ধ করলে অঙ্গীকারনামার ফরম, প্রিভিউ, Word ও PDF থেকে নম্বরের ঘর ও লেখা বাদ যাবে।</span></span></label></div>
           <div class="field full developer-editor"><h3>সাইটের পরিচিতি ও শেয়ার কার্ড</h3><p class="help">শেয়ার টাইটেল বা বিবরণ ফাঁকা রাখলে সাইটের টাইটেল বা বিবরণ ব্যবহার হবে।</p></div>
           <?php foreach ($brandingFields as $key => [$label, $maxLength]): ?>
-            <div class="field">
-              <label for="<?= h($key) ?>"><?= h($label) ?></label>
-              <input id="<?= h($key) ?>" name="<?= h($key) ?>" type="<?= $key === 'canonical_url' ? 'url' : 'text' ?>" maxlength="<?= $maxLength ?>" value="<?= h($branding[$key]) ?>">
-            </div>
             <?php if ($key === 'site_logo' || $key === 'share_image'): ?>
+              <div class="field"><label><?= h($label) ?></label><input id="<?= h($key) ?>" name="<?= h($key) ?>" type="hidden" value="<?= h($branding[$key]) ?>"><div class="image-upload"><img id="<?= h($key) ?>_preview" src="<?= h($branding[$key]) ?>" alt="<?= h($label) ?> preview"><div><strong><?= $key === 'site_logo' ? 'সাইটের লোগো' : 'শেয়ার কার্ডের ছবি' ?></strong><span class="help" style="display:block">JPG, PNG বা WebP · সর্বোচ্চ ২ MB</span><label class="upload-button" for="<?= h($key) ?>_file">ছবি বেছে নিন</label><input id="<?= h($key) ?>_file" name="<?= h($key) ?>_file" type="file" accept="image/jpeg,image/png,image/webp"><span class="upload-name" id="<?= h($key) ?>_name">বর্তমান ছবি</span></div></div></div>
+            <?php else: ?>
               <div class="field">
-                <label for="<?= h($key) ?>_file"><?= $key === 'site_logo' ? 'নতুন লোগো আপলোড' : 'নতুন শেয়ার ছবি আপলোড' ?></label>
-                <input id="<?= h($key) ?>_file" name="<?= h($key) ?>_file" type="file" accept="image/jpeg,image/png,image/webp">
-                <span class="help">JPG, PNG বা WebP · সর্বোচ্চ ২ MB</span>
+                <label for="<?= h($key) ?>"><?= h($label) ?></label>
+                <input id="<?= h($key) ?>" name="<?= h($key) ?>" type="<?= $key === 'canonical_url' ? 'url' : 'text' ?>" maxlength="<?= $maxLength ?>" value="<?= h($branding[$key]) ?>">
               </div>
             <?php endif; ?>
           <?php endforeach; ?>
@@ -225,8 +238,7 @@ $branding = site_branding($settings);
           <div class="field"><label for="developer_bcs47">৪৭তম বিসিএস পরিচিতি</label><input id="developer_bcs47" name="developer_bcs47" value="<?php echo h($settings['developer_bcs47']); ?>" required></div>
           <div class="field"><label for="developer_whatsapp">WhatsApp link</label><input id="developer_whatsapp" name="developer_whatsapp" type="url" value="<?php echo h($settings['developer_whatsapp']); ?>" required></div>
           <div class="field"><label for="developer_facebook">Facebook profile/page link</label><input id="developer_facebook" name="developer_facebook" type="url" value="<?php echo h($settings['developer_facebook']); ?>" required></div>
-          <div class="field"><label for="developer_image">বর্তমান image path/URL</label><input id="developer_image" name="developer_image" value="<?php echo h($settings['developer_image']); ?>"><span class="help">Upload করলে নতুন image path নিজে থেকে বসবে।</span></div>
-          <div class="field"><label for="developer_image_file">নতুন profile image upload</label><input id="developer_image_file" name="developer_image_file" type="file" accept="image/jpeg,image/png,image/webp"><span class="help">JPG, PNG অথবা WebP; সর্বোচ্চ ২ MB</span></div>
+          <div class="field full"><label>ডেভেলপার প্রোফাইল ছবি</label><input id="developer_image" name="developer_image" type="hidden" value="<?php echo h($settings['developer_image']); ?>"><div class="image-upload"><img class="avatar" id="developerUploadPreview" src="<?php echo h($settings['developer_image']); ?>" alt="ডেভেলপার প্রোফাইল ছবির প্রিভিউ"><div><strong>প্রোফাইল ছবি</strong><span class="help" style="display:block">JPG, PNG বা WebP · সর্বোচ্চ ২ MB</span><label class="upload-button" for="developer_image_file">ছবি বেছে নিন</label><input id="developer_image_file" name="developer_image_file" type="file" accept="image/jpeg,image/png,image/webp"><span class="upload-name" id="developer_image_name">বর্তমান ছবি</span></div></div></div>
           <div class="field full"><div class="developer-preview" id="developerPreview"><img id="developerPreviewImage" src="<?php echo h($settings['developer_image']); ?>" alt="Developer preview"><div><h3 id="developerPreviewName"><?php echo h($settings['developer_name']); ?></h3><p id="developerPreviewSubtitle"><?php echo h($settings['developer_subtitle']); ?></p><p id="developerPreviewWorkplace"><?php echo h($settings['developer_workplace']); ?></p><p id="developerPreviewBcs46"><?php echo h($settings['developer_bcs46']); ?></p><p id="developerPreviewBcs47"><?php echo h($settings['developer_bcs47']); ?></p><a id="developerPreviewFacebook" href="<?php echo h($settings['developer_facebook']); ?>" target="_blank" rel="noopener">Facebook profile খুলুন</a></div></div></div>
         </div><div class="actions"><span class="help">Logged in as <?php echo h($_SESSION['admin_name'] ?? 'admin'); ?></span><button type="submit">Settings সংরক্ষণ করুন</button></div></form>
       <?php endif; ?>
@@ -238,6 +250,12 @@ $branding = site_branding($settings);
         const settingsChannel = new BroadcastChannel("bcs-site-settings");
         settingsChannel.postMessage(<?= json_encode([
             'showCadreId' => (int) $settings['show_cadre_id'] === 1,
+            'examYear' => (string) $settings['exam_year'],
+            'joiningDate' => (string) ($settings['joining_date'] ?? ''),
+            'commissionDate' => $settings['commission_date'],
+            'notificationDate' => $settings['notification_date'],
+            'commissionNo' => $settings['commission_no'],
+            'notificationNo' => $settings['notification_no'],
             'siteTitle' => $branding['site_title'],
             'siteLogo' => $branding['site_logo'],
         ], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) ?>);
@@ -265,8 +283,23 @@ $branding = site_branding($settings);
       document.getElementById('developer_image_file')?.addEventListener('change', (event) => {
         const file = event.target.files?.[0];
         if (!file) return;
-        const image = document.getElementById('developerPreviewImage');
-        if (image) image.src = URL.createObjectURL(file);
+        const previewUrl = URL.createObjectURL(file);
+        ['developerPreviewImage', 'developerUploadPreview'].forEach((id) => {
+          const image = document.getElementById(id);
+          if (image) image.src = previewUrl;
+        });
+        const name = document.getElementById('developer_image_name');
+        if (name) name.textContent = file.name;
+      });
+      ['site_logo', 'share_image'].forEach((key) => {
+        document.getElementById(`${key}_file`)?.addEventListener('change', (event) => {
+          const file = event.target.files?.[0];
+          if (!file) return;
+          const preview = document.getElementById(`${key}_preview`);
+          if (preview) preview.src = URL.createObjectURL(file);
+          const name = document.getElementById(`${key}_name`);
+          if (name) name.textContent = file.name;
+        });
       });
       sync();
     })();

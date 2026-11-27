@@ -8,6 +8,8 @@ CREATE TABLE IF NOT EXISTS site_settings (
   joining_date DATE NULL,
   notification_date DATE NULL,
   commission_date DATE NULL,
+  commission_no VARCHAR(100) NOT NULL DEFAULT '৮০.০০.০০০০.২০২.৬৪.০১৬.২৫-১৭১',
+  notification_no VARCHAR(100) NOT NULL DEFAULT '০৫.০০.০০০০.১৪৭.১১.০১৬.২৫-৫১৮',
   show_cadre_id TINYINT(1) NOT NULL DEFAULT 1,
   developer_name VARCHAR(160) NOT NULL DEFAULT 'Md. Nasir Uddin',
   developer_subtitle VARCHAR(200) NOT NULL DEFAULT 'ওয়েব অ্যাপ ডেভেলপার',
@@ -21,8 +23,8 @@ CREATE TABLE IF NOT EXISTS site_settings (
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-INSERT INTO site_settings (id, bcs_number, exam_year, joining_date, notification_date, commission_date, show_cadre_id)
-VALUES (1, '45', 2023, NULL, '2026-10-14', '2025-12-14', 1)
+INSERT INTO site_settings (id, bcs_number, exam_year, joining_date, notification_date, commission_date, commission_no, notification_no, show_cadre_id)
+VALUES (1, '45', 2023, NULL, '2026-10-14', '2025-12-14', '৮০.০০.০০০০.২০২.৬৪.০১৬.২৫-১৭১', '০৫.০০.০০০০.১৪৭.১১.০১৬.২৫-৫১৮', 1)
 ON DUPLICATE KEY UPDATE id = id;
 
 CREATE TABLE IF NOT EXISTS admin_users (

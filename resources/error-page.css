@@ -1,3 +1,10 @@
+@font-face {
+  font-family: "Nikosh";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("public/assets/nikosh.ttf") format("truetype");
+}
 * { box-sizing: border-box; }
 body {
   min-height: 100vh;
@@ -8,7 +15,7 @@ body {
   place-items: center;
   color: #15382c;
   background: radial-gradient(ellipse at 85% 12%, #cfeade, transparent 52%), #f2f7f4;
-  font-family: "Noto Sans Bengali", "Nirmala UI", "Vrinda", system-ui, sans-serif;
+  font-family: "Nikosh", "Noto Sans Bengali", "Nirmala UI", "Vrinda", system-ui, sans-serif;
 }
 .error-card {
   display: grid;
